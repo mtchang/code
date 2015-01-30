@@ -1,0 +1,18 @@
+
+<?php
+
+// ref:http://php.net/manual/en/sqlite3.prepare.php
+
+$dbName = "sqlite.db";
+if (!file_exists($dbName)) {
+    die("Could not find database file.");
+}
+
+$db = new  SQLite3("$dbName");
+
+$sql = "select * from user where 1";
+$stmt = $db->prepare($sql);
+$result = $stmt->execute();
+var_dump($result->fetchArray());
+
+?>
