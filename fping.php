@@ -12,8 +12,8 @@ http://php.net/manual/en/book.memcached.php
 // 使用多執行序 fping ，快速平行的 ping 很多的主機. 並且使用 memcached 加速重複的 reload 查詢, 60秒內使用 cache 的資料。
 // 搭配檔案： ping_list.txt (描述主機的資訊, 格式如下:)
 // ----------------------
-// 140.117.69.1,主機1
-// 140.117.69.4,CM主機2
+// 120.111.69.1,主機1
+// 120.111.69.4,主機2
 // ----------------------
 // Write by mtchang.tw@gmail.com
 // Date: 2017.2.12 update
