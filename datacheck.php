@@ -72,18 +72,17 @@ function jwtdec($salt, $send_code, $debug =0) {
   return($codevalue);
 }
 // ----------------------------------------------------------.
-
-// example code
-// ----------------------------------------------------------.
+加密的密碼
 $salt = '11223344';
 // 需要傳遞的陣列
 $codevalue_array = array(
   'Amt' 			=> '111',
   'MerchantOrderNo' => 'ertgyhujioiuytre'
 );
-// 產生
+// 把包產生需要的資料
 $send_code = jwtenc($salt,$codevalue_array);
 var_dump($send_code);
-// 解碼
+
+// 把回傳回來的資料驗證解碼
 $codevalue = jwtdec($salt,$send_code);
 var_dump($codevalue);
