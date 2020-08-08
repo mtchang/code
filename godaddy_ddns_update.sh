@@ -1,51 +1,45 @@
 #!/bin/bash
+# by mtchang 2020.08.08 update
 # This script is used to check and update your GoDaddy DNS server to the IP address of your current internet connection.
-# Special thanks to mfox for his ps script
-# https://github.com/markafox/GoDaddy_Powershell_DDNS
-# First go to GoDaddy developer site to create a developer account and get your key and secret
-# https://developer.godaddy.com/getstarted
-# Be aware that there are 2 types of key and secret - one for the test server and one for the production server
-# Get a key and secret for the production server
-# Enter vaules for all variables, Latest API call requries them.
-#
-# 文件參考及改寫： https://developer.godaddy.com/doc/endpoint/domains
-# by mtchang 2019.1.2 update
 
-domain="網域"                       # your domain
-type="A"                                    # Record type A, CNAME, MX, etc.
-name="網域名稱"                            # name of record to update
+domain="網域"                  # your domain
+type="A"                      # Record type A, CNAME, MX, etc.
+name="網域名稱"                # name of record to update
 key="GODADDY的KEY"            # key for godaddy developer API
-secret="GODADDY的密碼"         # secret for godaddy developer API
+secret="GODADDY的密碼"        # secret for godaddy developer API
 
-headers="Authorization: sso-key $key:$secret"
-#echo $headers
+headers="Authorization: sso-key ${key}:${secret}"
+DNSSERVER="1.1.1.1"
+thistime=$(date)
 
-result=$(curl -s -X GET -H "$headers" \
- "https://api.godaddy.com/v1/domains/$domain/records/$type/$name")
+echo '' > curl_result.tmp
+echo "/usr/bin/curl -s -X GET -H '${headers}' 'https://api.godaddy.com/v1/domains/${domain}/records/${type}/${name}'" | sh> curl_result.tmp
+dnsIp=$(cat curl_result.tmp | cut -d, -f1 | cut -d: -f2 | cut -d'"' -f2)
 
-dnsIp=$(echo $result | grep -oE "\b([0-9]{1,3}\.){3}[0-9]{1,3}\b")
-echo "dnsIp:" $dnsIp
+# from dns ip
+# dnsIp=$(host ${name}.${domain} ${DNSSERVER} | grep ${name} | cut -d' ' -f4)
 
-# Get public ip address there are several websites that can do this.
-ret=$(curl -s GET "http://ipinfo.io/json")
-#echo $ret
-currentIp=$(echo $ret | grep -oE "\b([0-9]{1,3}\.){3}[0-9]{1,3}\b")
- echo "currentIp:" $currentIp
+echo '' > curl_result.tmp
+echo "/usr/bin/curl -s GET 'https://ifconfig.co'" | sh > curl_result.tmp
+currentIp=$(cat curl_result.tmp )
 
-if [ $dnsIp != $currentIp ];
-then
+mesg_ipinfo="HOSTIP: $currentIp  DNSIP: $dnsIp "
 
-# 送出 curl 到 api 
-echo "IP's are not equal, updating record"
-curl -X PUT "https://api.godaddy.com/v1/domains/$domain/records/$type/$name" \
--H "accept: application/json" \
--H "Content-Type: application/json" \
--H "$headers" \
--d "[ { \"data\": \"$currentIp\"  }]" 
+
+if [ -n "${dnsIp}" ] && [ -n "${currentIp}" ]; then
+
+if [ ${dnsIp} != ${currentIp} ]; then
+ mesg="IP's are not equal, updating record $currentIp"
+ curl -X PUT "https://api.godaddy.com/v1/domains/$domain/records/$type/$name" \
+ -H "accept: application/json" \
+ -H "Content-Type: application/json" \
+ -H "$headers" \
+ -d "[ { \"data\": \"$currentIp\"  }]" 
 fi
 
-if [ $dnsIp = $currentIp ];
- then
-      echo 'IP are equal, no update required'
+if [ ${dnsIp} = ${currentIp} ]; then
+  mesg='IP are equal, no update required'
 fi
 
+fi
+echo "$thistime ,$mesg_ipinfo , $mesg , v1"
