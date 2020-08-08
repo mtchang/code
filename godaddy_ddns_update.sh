@@ -20,7 +20,7 @@ dnsIp=$(cat curl_result.tmp | cut -d, -f1 | cut -d: -f2 | cut -d'"' -f2)
 # dnsIp=$(host ${name}.${domain} ${DNSSERVER} | grep ${name} | cut -d' ' -f4)
 
 echo '' > curl_result.tmp
-echo "/usr/bin/curl -s GET 'https://ifconfig.co'" | sh > curl_result.tmp
+echo "/usr/bin/curl -s GET 'https://ifconfig.me'" | sh > curl_result.tmp
 currentIp=$(cat curl_result.tmp )
 
 mesg_ipinfo="HOSTIP: $currentIp  DNSIP: $dnsIp "
