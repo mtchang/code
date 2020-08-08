@@ -43,3 +43,15 @@ fi
 
 fi
 echo "$thistime ,$mesg_ipinfo , $mesg , v1"
+
+
+
+# 可以排程下去跑
+#jangmt@blockchain-gateway:~$ crontab -e
+# m h  dom mon dow   command
+#10 * * * * /home/jangmt/ddns/ddns_update.sh >> /home/jangmt/ddns/ddns_update.log
+#
+#jangmt@blockchain-gateway:~$ ./ddns/ddns_update.sh 
+#Sat 08 Aug 2020 09:17:54 PM CST ,HOSTIP: 1.14.172.205  DNSIP: 1.14.172.205  , IP are equal, no update required , v1
+
+
