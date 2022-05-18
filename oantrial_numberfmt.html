@@ -1,0 +1,260 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <title>Title</title>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+</head>
+
+<body>
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm"
+        crossorigin="anonymous">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.8/css/all.css" integrity="sha384-3AB7yXWz4OeoZcPbieVW64vVXEwADiYyAEhwilzWsLw+9FgqpyjjStpPnpBO8o8S"
+        crossorigin="anonymous">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/numeral.js/2.0.6/numeral.min.js"></script>
+
+    <div class="container">
+        <div class="row mt-5">
+            <div class="col-9 text-center">
+                <h3>貸款試算</h3>
+                <br>
+            </div>
+        </div>
+        <div class="form-group row">
+            <label for="txtNetIncome" class="col-4 col-form-label text-right">貸款金額</label>
+            <div class="input-group col-8">
+                <div class="input-group-prepend">
+                    <div class="input-group-text">
+                        <i class="fas fa-dollar-sign"></i>
+                    </div>
+                </div>
+                <input type="text" class="form-control" id="txtNetIncome" value="6000000" />
+            </div>
+        </div>
+   
+
+        <div class="form-group row">
+            <label for="txtTaxRate" class="col-4 col-form-label text-right">年利率(<a href="https://tw.rter.info/deposits/" target="_blank">利率查詢</a>) </label>
+            <div class="input-group col-8">
+                <input type="text" class="form-control" maxlength="5" id="txtTaxRate" value="1.68" />
+                <div class="input-group-append">
+                    <div class="input-group-text">
+                        <i class="fas fa-percent"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    <div class="form-group row">
+        <label for="txtTaxAdjustment" class="col-4 col-form-label text-right">貸款年限</label>
+        <div class="input-group col-8">
+            <div class="input-group-prepend">
+            </div>
+            <input type="text" class="form-control" id="txtTaxAdjustment" value="3" />
+        </div>
+    </div>
+
+
+    <div class="form-group row">
+        <label for="txtTaxAdjustment" class="col-4 col-form-label text-right">立即試算</label>
+        <div class="input-group col-8">
+            <button class="btn btn-primary" id="con">
+                <i class="fas fa-calculator"></i>(本金平均攤還法)
+            </button>
+        </div>
+    </div>
+
+    <div class="form-group row">
+        <div class="col-12">
+            <p id="calcresult">
+
+            </p>
+            <p id="showmyresulttable">
+            </p>
+
+        </div>
+    </div>
+
+</div>
+
+
+    <script>
+        // write by mtchang.tw@gmail.com
+        // 閉包含數
+        (function() {
+        /**
+         * Decimal adjustment of a number.
+         *
+         * @param {String}  type  The type of adjustment.
+         * @param {Number}  value The number.
+         * @param {Integer} exp   The exponent (the 10 logarithm of the adjustment base).
+         * @returns {Number} The adjusted value.
+         */
+        function decimalAdjust(type, value, exp) {
+            // If the exp is undefined or zero...
+            if (typeof exp === 'undefined' || +exp === 0) {
+            return Math[type](value);
+            }
+            value = +value;
+            exp = +exp;
+            // If the value is not a number or the exp is not an integer...
+            if (isNaN(value) || !(typeof exp === 'number' && exp % 1 === 0)) {
+            return NaN;
+            }
+            // Shift
+            value = value.toString().split('e');
+            value = Math[type](+(value[0] + 'e' + (value[1] ? (+value[1] - exp) : -exp)));
+            // Shift back
+            value = value.toString().split('e');
+            return +(value[0] + 'e' + (value[1] ? (+value[1] + exp) : exp));
+        }
+
+        // Decimal round
+        if (!Math.round10) {
+            Math.round10 = function(value, exp) {
+            return decimalAdjust('round', value, exp);
+            };
+        }
+        // Decimal floor
+        if (!Math.floor10) {
+            Math.floor10 = function(value, exp) {
+            return decimalAdjust('floor', value, exp);
+            };
+        }
+        // Decimal ceil
+        if (!Math.ceil10) {
+            Math.ceil10 = function(value, exp) {
+            return decimalAdjust('ceil', value, exp);
+            };
+        }
+        })();
+
+
+        // 貸款計算開始
+        var con = document.getElementById("con");
+        con.onclick = function () {
+            // 貸款金額
+            const yAmount = document.getElementById("txtNetIncome").value;
+            // 貸款年限
+            const yLoan = document.getElementById("txtTaxAdjustment").value;
+            // 年利率
+            const yRate = document.getElementById("txtTaxRate").value;
+
+            console.log(yAmount + "　" + yLoan + "　" + yRate);
+
+            // 貸款試算(以本息平均攤還法) 
+            // https://pip.moi.gov.tw/V3/c/SCRC0201.aspx
+            // https://www.landbank.com.tw/Calculate/Repayment
+            var LoanCalculator = function (yRate, yLoan, yAmount) {
+
+                // clear table
+                var Table = document.getElementById("showmyresulttable");
+	            Table.innerHTML = 
+                '<table id="myresulttable" class="table">' +
+                '<tr><th scope="col">期數</th><th scope="col">償還本金</th><th scope="col">償還利息</th> <th scope="col">償還本利和</th><th scope="col">貸款本金餘額</th></tr></table>';
+
+
+                // 月利率 ＝ 年利率／12 
+                let _mRate = yRate / 12; 
+                // 貸款金額
+                let _amount = yAmount;   
+                // 月數=貸款年限 ｘ 12
+                let _mLoan = yLoan * 12; 
+                console.log( "月利率" + _mRate + "貸款金額" + _amount + "月數" + _mLoan);
+
+                let _amount_mloancount = _mLoan+1;
+                let _amount_balance = _amount;
+                
+                //　平均每月償還本金
+                let _avg_mpayamount = Math.round(_amount / _mLoan);
+                console.log("每月償還本金" + _avg_mpayamount);
+
+                // 每月應付利息金額＝本金餘額×月利率%
+                let _mpayinterest = Math.round(_amount * (_mRate/100));
+                console.log("每月應付利息金額" + _mpayinterest);                
+
+                //var _aRate = ((Math.pow(1 + _mRate, _mLoan)) * _mRate) / ((Math.pow(1 + _mRate, _mLoan)) - 1);
+                // 每月應付本息金額之平均攤還率＝{[(1＋月利率)^月數]×月利率}÷{[(1＋月利率)^月數]－1}
+                let _aRate = Math.floor10(((Math.pow((1 + _mRate) , _mLoan)) * _mRate) / ((Math.pow( (1 + _mRate), _mLoan)) - 1), -4);
+                console.log("每月應付本息金額之平均攤還率" + _aRate);
+
+                // 初始值設定
+                let _lamount_mloancount=_amount_mloancount;
+                let _lavg_mpayamount=_avg_mpayamount
+                let _lmpayinterest=_mpayinterest;
+                // 償還本利和
+                let _lavgmpayamountinterest=_mpayinterest+_avg_mpayamount;
+                let _lamount_balance=_amount_balance;
+
+                // sum 
+                let _sum_lavgmpayamountinterest = 0;
+                while (_lamount_mloancount > 1) {
+
+                    // 推算, 下次繳款本金餘額是否不足 償還本金
+                    if((_lamount_balance - _lavg_mpayamount) <= 0) {
+                        // 剩下的餘額全繳
+                        _lavg_mpayamount = _lamount_balance;
+                    }else{
+                        _lavg_mpayamount = _avg_mpayamount;
+                    }                   
+
+                    _lmpayinterest = Math.round(_lamount_balance * (_mRate/100));
+                    _lavgmpayamountinterest = _avg_mpayamount + _lmpayinterest;
+                    _lamount_balance = _lamount_balance - _lavg_mpayamount;
+
+                    var currency_lmpayinterest = numeral (_lmpayinterest).format('$0,0');
+                    var currency_lavgmpayamountinterest = numeral (_lavgmpayamountinterest).format('$0,0');
+                    var currency_lavg_mpayamount = numeral (_lavg_mpayamount).format('$0,0');
+                    var currency_lamount_balance = numeral (_lamount_balance).format('$0,0');                        
+
+                    // 本金利息總支出
+                    _sum_lavgmpayamountinterest = _sum_lavgmpayamountinterest + _lavgmpayamountinterest;
+                    
+
+                    // 往下一期
+                    _lamount_mloancount = (_lamount_mloancount - 1);
+                    console.log("期數" + _lamount_mloancount + "剩餘本金" + currency_lamount_balance + "本利支出" + _sum_lavgmpayamountinterest);
+                                        
+
+                    var table = document.getElementById("myresulttable");
+                    var row = table.insertRow(1);
+                    var cell1 = row.insertCell(0);
+                    var cell2 = row.insertCell(1);
+                    var cell3 = row.insertCell(2);
+                    var cell4 = row.insertCell(3);
+                    var cell5 = row.insertCell(4);
+                    //  期數
+                    cell1.innerHTML = _lamount_mloancount;
+                    //  償還本金
+                    //cell2.innerHTML = _lavg_mpayamount;
+                    cell2.innerHTML = currency_lavg_mpayamount;
+                    //  償還利息
+                    cell3.innerHTML = currency_lmpayinterest;
+                    //  償還本利和
+                    cell4.innerHTML = currency_lavgmpayamountinterest;
+                    //  貸款本金餘額
+                    cell5.innerHTML = currency_lamount_balance;
+
+                }
+                
+                var currency_sum_lavgmpayamountinterest = numeral(_sum_lavgmpayamountinterest).format('$0,0');
+                document.getElementById('calcresult').innerHTML += "<div>償還本利累計和" +currency_sum_lavgmpayamountinterest+"</div>";
+
+            }
+            
+            document.getElementById('calcresult').innerHTML = Date();
+            let calculator = new LoanCalculator(yRate, yLoan, yAmount);
+            //console.log(calculator);    
+            
+            
+
+        }
+
+    </script>
+</body>
+
+</html>
