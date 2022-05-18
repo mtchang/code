@@ -39,7 +39,7 @@
         <div class="form-group row">
             <label for="txtTaxRate" class="col-4 col-form-label text-right">年利率(<a href="https://tw.rter.info/deposits/" target="_blank">利率查詢</a>) </label>
             <div class="input-group col-8">
-                <input type="text" class="form-control" maxlength="5" id="txtTaxRate" value="1.5" />
+                <input type="text" class="form-control" maxlength="5" id="txtTaxRate" value="1.68" />
                 <div class="input-group-append">
                     <div class="input-group-text">
                         <i class="fas fa-percent"></i>
@@ -53,7 +53,7 @@
         <div class="input-group col-8">
             <div class="input-group-prepend">
             </div>
-            <input type="text" class="form-control" id="txtTaxAdjustment" value="20" />
+            <input type="text" class="form-control" id="txtTaxAdjustment" value="3" />
         </div>
     </div>
 
@@ -72,19 +72,9 @@
             <p id="calcresult">
 
             </p>
-                <table id="myresulttable" class="table">
-                    <thead>
-                        <tr>
-                          <th scope="col">期數</th>
-                          <th scope="col">償還本金</th>
-                          <th scope="col">償還利息</th>
-                          <th scope="col">償還本利和</th>
-                          <th scope="col">貸款餘額</th>
-                        </tr>
-                      </thead>                    
-                    <tbody>
-                    </tbody>                    
-                </table>    
+            <p id="showmyresulttable">
+            </p>
+
         </div>
     </div>
 
@@ -187,8 +177,20 @@
                 let _avgmpayamountinterest = _avg_mpayamount + _mpayinterest;
                 console.log("每月應付本金加利息金額" + _avgmpayamountinterest);
 
+                // clear table
+                var Table = document.getElementById("showmyresulttable");
+	            Table.innerHTML = 
+                '<table id="myresulttable" class="table">' +
+                '<tr><th scope="col">期數</th><th scope="col">償還本金</th><th scope="col">償還利息</th> <th scope="col">償還本利和</th><th scope="col">貸款餘額</th></tr></table>';
 
-                while (_amount_mloancount > 0) {
+
+                while (_amount_mloancount > 1) {
+
+                    let _sumamount= _amount_balance - _avg_mpayamount;
+                    if( _sumamount < _avg_mpayamount )  {
+                        _sumamount = _amount_balance + _sumamount;
+                        console.log("剩餘本金零頭" + _sumamount);
+                    }
 
                     var table = document.getElementById("myresulttable");
                     var row = table.insertRow(1);
@@ -201,10 +203,11 @@
                     cell2.innerHTML = _avg_mpayamount;
                     cell3.innerHTML = _mpayinterest;
                     cell4.innerHTML = _avgmpayamountinterest;
-                    cell5.innerHTML = _amount_balance - _avg_mpayamount;                      
+                    cell5.innerHTML = _sumamount;                      
 
                     // 本金剩餘
-                    _amount_balance = _amount_balance - _avg_mpayamount ; 
+                    // _amount_balance = _amount_balance - _avg_mpayamount ; 
+                    _amount_balance = _sumamount ; 
                     _amount_mloancount = (_amount_mloancount - 1);
                     console.log("期數" + _amount_mloancount + "剩餘本金" + _amount_balance );
 
@@ -216,7 +219,20 @@
                     _avgmpayamountinterest = _avg_mpayamount + _mpayinterest;
                     console.log("期數" + _amount_mloancount + "每月應付本金加利息金額" + _avgmpayamountinterest);
                 }
+                    
 
+                var table = document.getElementById("myresulttable");
+                    var row = table.insertRow(1);
+                    var cell1 = row.insertCell(0);
+                    var cell2 = row.insertCell(1);
+                    var cell3 = row.insertCell(2);
+                    var cell4 = row.insertCell(3);
+                    var cell5 = row.insertCell(4);
+                    cell1.innerHTML = _mLoan - _amount_mloancount + 1;
+                    cell2.innerHTML = _amount_balance;
+                    cell3.innerHTML = _mpayinterest;
+                    cell4.innerHTML = _avgmpayamountinterest;
+                    cell5.innerHTML = 0;
 
             }
 
